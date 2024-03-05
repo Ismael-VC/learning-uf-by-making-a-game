@@ -2,59 +2,56 @@
 \ * https://youtu.be/QO3fiIhRuOg
 
 9 constant #squares
+create action #squares cells allot
 
-create action #squares 1 , 2 , 3 , 4 , 5 , 6 , 7 , 8 , 9 ,
+: cells+ ( n -- ) cells + ;
 
-(
-	`." "` is not defined even though it is in Uf's glossary.
+: square! ( square # -- )	action rot 1- cells+ ! ;
 
-	Ok, it seems that `." "` is only defined to be used inside collon
-	definitions, use `.( )` outside.
-)
+: square@ ( square -- # ) action swap 1- cells+ @ ;
 
-.( Test #squares dump: )
-action #squares cells dump
+: 3-cr ( n -- )	3 mod 0= if cr then ;
 
-( `cell+` did not work! It only adds 2. )
-: cells+ ( n -- )
-\ Adds cells to n.
-	cells + ;
+: tab ( -- ) 9 emit ;
 
-: square! ( square # -- )
-\ Write a symbol into a square.
-	action rot 1- cells+ ! ;
+: dashes ( -- ) cr tab ." ---------" cr ;
 
-: square@ ( square -- # )
-\ Read a symbol from a square.
-	action swap 1- cells+ @ ;
+: .square ( n -- )
+	square@
+	     dup 0 = if
+		."   "
+	then dup 1 = if
+		." X "
+	then dup 2 = if
+		." O "
+	then
+		drop ;
 
-.( Test square! and square@: )
-4 77 square! 5 88 square! 6 99 square!
-4 square@ . 5 square@ . 6 square@ .
-
-: 3-cr ( n -- )
-\ Insert cr every 3 squares.
-	3 mod 0= if cr then ;
+: 3numbers ( square -- square+1 )
+	tab .square ." | "
+	    .square ." | "
+	    .square ;
 
 : .game ( -- )
-\ Prints the game squares.
+	9 8 7 6 5 4 3 2 1
+	3numbers dashes
+	3numbers dashes
+	3numbers cr ;
+
+: clear-game ( -- )
 	#squares 1+ 1
 	do
-		i 3-cr i square@ .
+		i 0 square!
 	loop ;
 
-.( Test `.game`: )
-.game
+1 constant X   2 constant O
 
-(
-	Prints:
-	1 2
-	3 77 88
-	99 7 8
-	9  ok
+: X! X square! ;
+: O! O square! ;
 
-	Instead of:
-	 1  2  3
-	77 88 99
-	 7  8  9
-)
+variable unplayed
+
+: current-player ( -- ) unplayed @ 1 and ;
+
+: start ( -- ) clear-game #squares unplayed ! ;
+
