@@ -5,14 +5,17 @@
 
 create action #squares 1 , 2 , 3 , 4 , 5 , 6 , 7 , 8 , 9 ,
 
-( ." " is not defined even though it is in Uf's glossary:
-  https://gitlab.com/b2495/uf/-/blob/master/GLOSSARY?ref_type=heads#L26 )
+(
+	`." "` is not defined even though it is in Uf's glossary.
 
-.( #squares dump: )
+	Ok, it seems that `." "` is only defined to be used inside collon
+	definitions, use `.( )` outside.
+)
+
+.( Test #squares dump: )
 action #squares cells dump
 
-( cell+ did not work! )
-
+( `cell+` did not work! It only adds 2. )
 : cells+ ( n -- )
 \ Adds cells to n.
 	cells + ;
@@ -40,7 +43,7 @@ action #squares cells dump
 		i 3-cr i square@ .
 	loop ;
 
-.( Printing game squares: )
+.( Test `.game`: )
 .game
 
 (
