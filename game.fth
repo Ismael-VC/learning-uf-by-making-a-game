@@ -94,9 +94,8 @@ variable unplayed
 		if
 			place-symbol .board
 		else
-			." Pick another square. "
+			drop ." Pick another square. "
 		then
-		drop
 	while
 		true
 	repeat ;
