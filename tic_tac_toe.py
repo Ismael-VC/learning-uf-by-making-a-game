@@ -108,6 +108,10 @@ def set_O(i: int) -> None: set_square(i, O)
 unplayed: int = 0
 
 
+# : start ( --- )   clear-game #squares unplayed ! player-input ;
+def start() -> None: clear_game(); global unplayed; unplayed = squares
+
+
 # : current-player ( --- )   unplayed @ 1 and ;
 def current_player() -> int: return unplayed & 1
 
@@ -166,7 +170,7 @@ def key(): return ord(input())
 #             ." O: "
 #         then
 #
-#         cr key   dup q-char =
+#         key   dup q-char =
 #         if
 #             drop cr ." Exiting " bye
 #         then
@@ -184,17 +188,17 @@ def player_input() -> None:
     while True:
         cr(); show("Square number for ")
         if current_player():
-            show("X:")
+            show("X: ")
         else:
-            show("O:")
+            show("O: ")
 
-        cr(); k = key()
+        k = key()
         if k == q_char:
             show("Exiting"); quit()
 
         k = ascii_to_num(k)
         if in_range(k) and is_empty(k):
-            place_symbol(k); show_board()
+            place_symbol(k); cr(); show_board();
         else:
             show("Pick another square.")
 
@@ -203,17 +207,18 @@ def player_input() -> None:
 def nxt() -> None: player_input()
 
 
-# : start ( --- )   clear-game #squares unplayed ! player-input ;
-def start() -> None:
-    clear_game()
-    global unplayed; unplayed = squares
-    player_input()
+# : full-game ( --- )
+#     start cr ." Enter 'q' to exit. "
+#     begin
+#         .game player-input
+#         if exit then
+#         unplayed
+#     0= until ;
+def full_game() -> None:
+    start(); show("Enter 'q' to exit."); cr(); cr()
+    show_board(); player_input()
 
 
-start()
 
-
-
-
-
-
+if __name__ == '__main__':
+    full_game()

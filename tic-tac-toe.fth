@@ -53,6 +53,8 @@ create board squares cells allot
 
 variable unplayed
 
+: start ( --- )   clear-game #squares unplayed ! ;
+
 : current-player ( --- )   unplayed @ 1 and ;
 
 48 constant zero
@@ -86,7 +88,7 @@ variable unplayed
 			." O: "
 		then
 
-		cr key   dup q-char =
+		key   dup q-char =
 		if
 			drop cr ." Exiting " bye
 		then
@@ -103,4 +105,10 @@ variable unplayed
 
 : next ( --- ) player-input ;
 
-: start ( --- )   clear-game #squares unplayed ! player-input ;
+: full-game ( --- )
+	start cr ." Enter 'q' to exit. "
+	begin
+		.game player-input
+		if exit then
+		unplayed
+	0= until ;
