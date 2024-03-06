@@ -4,41 +4,42 @@
 9 constant #squares
 create action #squares cells allot
 
-: cells+ ( n -- ) cells + ;
+: cells+ ( n --- )   cells + ;
 
-: square! ( square # -- )	action rot 1- cells+ ! ;
+: square! ( square # --- )   action rot 1- cells+ ! ;
 
-: square@ ( square -- # ) action swap 1- cells+ @ ;
+: square@ ( square --- # )   action swap 1- cells+ @ ;
 
-: 3-cr ( n -- )	3 mod 0= if cr then ;
+: 3-cr ( n --- )   3 mod 0= if cr then ;
 
-: tab ( -- ) 9 emit ;
+: tab ( --- )   9 emit ;
 
-: dashes ( -- ) cr tab ." ---------" cr ;
+: dashes ( --- )   cr tab ." ---------" cr ;
 
-: .square ( n -- )
-	square@
+
+: .square ( n --- )
+	dup square@
 	     dup 0 = if
-		."   "
+		swap .
 	then dup 1 = if
-		." X "
+		." X " drop
 	then dup 2 = if
-		." O "
+		." O " drop
 	then
 		drop ;
 
-: 3numbers ( square -- square+1 )
+: 3numbers ( square --- square+1 )
 	tab .square ." | "
 	    .square ." | "
 	    .square ;
 
-: .game ( -- )
+: .board ( --- )
 	9 8 7 6 5 4 3 2 1
 	3numbers dashes
 	3numbers dashes
 	3numbers cr ;
 
-: clear-game ( -- )
+: clear-game ( --- )
 	#squares 1+ 1
 	do
 		i 0 square!
@@ -51,7 +52,55 @@ create action #squares cells allot
 
 variable unplayed
 
-: current-player ( -- ) unplayed @ 1 and ;
+: current-player ( --- )   unplayed @ 1 and ;
 
-: start ( -- ) clear-game #squares unplayed ! ;
+48 constant zero
 
+: ascii># ( char --- n )   zero - ;
+
+: range? ( n --- )   dup 1 <  swap 9 > or 0= ;
+
+: empty? ( n --- )   square@ 0= ;
+
+: place-symbol ( square --- )
+	current-player if
+		X!
+	else
+		O!
+	then
+	unplayed @ 1+ unplayed ! ;
+
+: ps ( --- )   place-symbol ;
+
+113 constant q-char
+
+: player-input ( --- )
+	begin
+		cr ." Square number for "
+
+		current-player
+		if
+			." X: "
+		else
+			." O: "
+		then
+
+		cr key   dup q-char =
+		if
+			drop cr ." Exiting " bye
+		then
+
+		ascii># dup range? over empty? and
+		if
+			place-symbol .board
+		else
+			." Pick another square. "
+		then
+		drop
+	while
+		true
+	repeat ;
+
+: next ( --- ) player-input ;
+
+: start ( --- )   clear-game #squares unplayed ! player-input ;
