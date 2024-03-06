@@ -1,0 +1,105 @@
+(
+@|constants )
+|0e @System/debug   |18 @Console/write
+
+|00 @NULL   |09 @TAB   |0a @CR   |20 @SPC
+
+|09 @squares   |31 @zero   |71 @q-char
+|01 @X   |02 @O
+
+
+|0000
+
+(
+@|variables )
+@unplayed $1
+
+
+|0100
+
+(
+@|main )
+@on-reset ( -> )
+	( full-game )
+
+     show-board
+
+
+
+	cr
+    print-stacks
+BRK
+
+
+@set-square ( i val -- )   SWP #00 SWP ;board ADD2 STA JMP2r
+@get-square ( i -- val )   #00 SWP ;board ADD2 LDA JMP2r
+@3-cr ( i -- )   #03 AND #00 NEQ ?{ cr } JMP2r
+@dashes ( -- )   cr tab { "--------- -NULL } print-izstr cr JMP2r
+
+@show-square ( i -- )
+	DUP get-square
+	DUP #00 EQU ?&is-0
+	DUP #01 EQU ?&is-1
+	DUP #02 EQU ?&is-2 !&end
+
+	&is-0
+		SWP print-nibble spc !&end
+	&is-1
+		{ "X -SPC -NULL } print-izstr POP !&end
+	&is-2
+		{ "O -SPC -NULL } print-izstr POP !&end
+	&end
+		POP
+JMP2r
+
+
+@3numbers ( a b c -- )
+    tab show-square { "| -SPC -NULL } print-izstr
+        show-square { "| -SPC -NULL } print-izstr
+        show-square
+JMP2r
+
+
+@show-board ( -- )
+	#0908 #0706 #0504 #0302 #01
+	3numbers dashes
+	3numbers dashes
+	3numbers cr
+JMP2r
+
+
+(
+@|stdlib )
+@print-zstr ( str* -- )
+	&while
+		LDAk emit
+		INC2 LDAk ?&while
+	POP2
+JMP2r
+
+@print-nibble ( u -- )
+	#0f AND DUP #09 GTH #27 MUL ADD
+	[ LIT "0 ] ADD emit
+JMP2r
+
+@print-izstr ( {str}* -- )   SWP2r STH2r print-zstr JMP2r
+@emit ( char -- )   .Console/write DEO JMP2r
+@cr ( -- )   .CR emit JMP2r
+@tab ( -- )   .TAB emit JMP2r
+@spc ( -- )   .SPC emit JMP2r
+@not ( f -- )   #00 EQU JMP2r
+
+@print-stacks ( -- )
+	STH2r ,&rtn STR2
+	[ LIT2 01 -System/debug ] DEO
+	[ LIT2 &rtn $2 ] STH2
+JMP2r
+
+
+(
+@|data )
+@board [
+	00 00 00
+	00 00 00
+	00 00 00
+]
