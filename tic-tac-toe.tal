@@ -3,7 +3,7 @@
 |0e @System/debug   |0f @System/state   |18 @Console/write
 |80 @Controller/vector   |83 @Controller/key
 
-|00 @NULL   |09 @TAB   |0a @CR   |20 @SPC
+|00 @0   |09 @t   |0a @n   |20 @s
 
 ( 9 constant #squares )
 |09 @squares
@@ -54,7 +54,7 @@ BRK
 @3-cr ( i -- )   #03 AND #00 NEQ ?{ cr } JMP2r
 
 ( : dashes ( --- )   cr tab ." ---------" cr ; )
-@dashes ( -- )   cr tab { "--------- -NULL } print-izstr cr JMP2r
+@dashes ( -- )   cr tab { "--------- -0 } print-izstr cr JMP2r
 
 
 (
@@ -72,8 +72,8 @@ BRK
 @show-square ( i -- )
 	DUP get-square
 	DUP #00 EQU not ?{ SWP print-nibble spc !&end }
-	DUP #01 EQU not ?{ { "X -SPC -NULL } print-izstr POP !&end }
-	DUP #02 EQU not ?{ { "O -SPC -NULL } print-izstr POP !&end }
+	DUP #01 EQU not ?{ { "X -s -0 } print-izstr POP !&end }
+	DUP #02 EQU not ?{ { "O -s -0 } print-izstr POP !&end }
 	&end
 		POP
 JMP2r
@@ -86,8 +86,8 @@ JMP2r
         .square ;
 )
 @3numbers ( a b c -- )
-    tab show-square { "| -SPC -NULL } print-izstr
-        show-square { "| -SPC -NULL } print-izstr
+    tab show-square { "| -s -0 } print-izstr
+        show-square { "| -s -0 } print-izstr
         show-square
 JMP2r
 
@@ -193,19 +193,19 @@ JMP2r
 )
 @player-input ( -- )
 	&while
-		cr { "Square -SPC "number -SPC "for -SPC -NULL } print-izstr
+		cr { "Square -s "number -s "for -s -0 } print-izstr
 
-		current-player not ?{ { "X: -SPC -NULL } print-izstr !&continue }
-		{ "O: -SPC -NULL } print-izstr
+		current-player not ?{ { "X: -s -0 } print-izstr !&continue }
+		{ "O: -s -0 } print-izstr
 
 		&continue
-			key DUP .q-char EQU not ?{ POP cr { "Exiting -NULL } print-izstr exit }
+			key DUP .q-char EQU not ?{ POP cr { "Exiting -0 } print-izstr exit }
 
 			ascii># DUP range? OVR empty? AND not ?{ place-symbol show-board !&end }
-			POP { "Pick -SPC "another -SPC "square. -NULL } print-izstr
+			POP { "Pick -s "another -s "square. -0 } print-izstr
 
 		&end
-	!&while
+	( !&while )
 JSR2
 
 
@@ -222,7 +222,7 @@ JSR2
     0= until ;
 )
 @full-game ( -- )
-	start { "Enter -SPC ""q" -SPC "to -SPC "exit. -NULL } print-izstr cr cr
+	start { "Enter -s ""q" -s "to -s "exit. -0 } print-izstr cr cr
 	show-board player-input
 JMP2r
 
@@ -243,9 +243,9 @@ JMP2r
 
 @print-izstr ( {str}* -- )   SWP2r STH2r print-zstr JMP2r
 @emit ( char -- )   .Console/write DEO JMP2r
-@cr ( -- )   .CR emit JMP2r
-@tab ( -- )   .TAB emit JMP2r
-@spc ( -- )   .SPC emit JMP2r
+@cr ( -- )   .n emit JMP2r
+@tab ( -- )   .t emit JMP2r
+@spc ( -- )   .s emit JMP2r
 @not ( f -- )   #00 EQU JMP2r
 @key ( -- char )   .user-input LDZ JMP2r
 @exit ( -> )   [ LIT2 80 -System/state ] DEO BRK
