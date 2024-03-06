@@ -3,7 +3,7 @@
 |0e @System/debug   |0f @System/state   |18 @Console/write
 |80 @Controller/vector   |83 @Controller/key
 
-|00 @0   |09 @t   |0a @n   |20 @s
+|09 @t   |0a @n   |20 @s
 
 ( 9 constant #squares )
 |09 @squares
@@ -54,7 +54,7 @@ BRK
 @3-cr ( i -- )   #03 AND #00 NEQ ?{ cr } JMP2r
 
 ( : dashes ( --- )   cr tab ." ---------" cr ; )
-@dashes ( -- )   cr tab { "--------- -0 } print-izstr cr JMP2r
+@dashes ( -- )   cr tab { "--------- $1 } print cr JMP2r
 
 
 (
@@ -72,8 +72,8 @@ BRK
 @show-square ( i -- )
 	DUP get-square
 	DUP #00 EQU not ?{ SWP print-nibble spc !&end }
-	DUP #01 EQU not ?{ { "X -s -0 } print-izstr POP !&end }
-	DUP #02 EQU not ?{ { "O -s -0 } print-izstr POP !&end }
+	DUP #01 EQU not ?{ { "X -s $1 } print POP !&end }
+	DUP #02 EQU not ?{ { "O -s $1 } print POP !&end }
 	&end
 		POP
 JMP2r
@@ -86,8 +86,8 @@ JMP2r
         .square ;
 )
 @3numbers ( a b c -- )
-    tab show-square { "| -s -0 } print-izstr
-        show-square { "| -s -0 } print-izstr
+    tab show-square { "| -s $1 } print
+        show-square { "| -s $1 } print
         show-square
 JMP2r
 
@@ -193,16 +193,16 @@ JMP2r
 )
 @player-input ( -- )
 	&while
-		cr { "Square -s "number -s "for -s -0 } print-izstr
+		cr { "Square -s "number -s "for -s $1 } print
 
-		current-player not ?{ { "X: -s -0 } print-izstr !&continue }
-		{ "O: -s -0 } print-izstr
+		current-player not ?{ { "X: -s $1 } print !&continue }
+		{ "O: -s $1 } print
 
 		&continue
-			key DUP .q-char EQU not ?{ POP cr { "Exiting -0 } print-izstr exit }
+			key DUP .q-char EQU not ?{ POP cr { "Exiting $1 } print exit }
 
 			ascii># DUP range? OVR empty? AND not ?{ place-symbol show-board !&end }
-			POP { "Pick -s "another -s "square. -0 } print-izstr
+			POP { "Pick -s "another -s "square. $1 } print
 
 		&end
 	( !&while )
@@ -222,26 +222,28 @@ JSR2
     0= until ;
 )
 @full-game ( -- )
-	start { "Enter -s ""q" -s "to -s "exit. -0 } print-izstr cr cr
+	start { "Enter -s ""q" -s "to -s "exit. $1 } print cr cr
 	show-board player-input
 JMP2r
 
 
 (
 @|stdlib )
-@print-zstr ( str* -- )
-	&while
-		LDAk emit
-		INC2 LDAk ?&while
-	POP2
+@print ( {str}* -- )
+        SWP2r STH2r
+    &while
+        LDAk emit
+        INC2 LDAk ?&while
+    POP2
 JMP2r
+
 
 @print-nibble ( u -- )
 	#0f AND DUP #09 GTH #27 MUL ADD
 	[ LIT "0 ] ADD emit
 JMP2r
 
-@print-izstr ( {str}* -- )   SWP2r STH2r print-zstr JMP2r
+
 @emit ( char -- )   .Console/write DEO JMP2r
 @cr ( -- )   .n emit JMP2r
 @tab ( -- )   .t emit JMP2r
