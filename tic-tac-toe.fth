@@ -1,14 +1,15 @@
 \ Learning Forth by Programming a Game
 \ * https://youtu.be/QO3fiIhRuOg
 
-9 constant #squares
-create action #squares cells allot
+9 constant squares
 
-: cells+ ( n --- )   cells + ;
+create board squares cells allot
 
-: square! ( square # --- )   action rot 1- cells+ ! ;
+: cells+ ( n --- n+cells )   cells + ;
 
-: square@ ( square --- # )   action swap 1- cells+ @ ;
+: square! ( square # --- )   board rot 1- cells+ ! ;
+
+: square@ ( square --- # )   board swap 1- cells+ @ ;
 
 : 3-cr ( n --- )   3 mod 0= if cr then ;
 
