@@ -1,10 +1,20 @@
 (
 @|constants )
-|0e @System/debug   |18 @Console/write
+|0e @System/debug   |0f @System/state   |18 @Console/write
+|80 @Controller/vector   |83 @Controller/key
 
 |00 @NULL   |09 @TAB   |0a @CR   |20 @SPC
 
-|09 @squares   |31 @zero   |71 @q-char
+( 9 constant #squares )
+|09 @squares
+
+( 48 constant zero )
+|31 @zero
+
+( 113 constant q-char )
+|71 @q-char
+
+( 1 constant X   2 constant O )
 |01 @X   |02 @O
 
 
@@ -12,7 +22,8 @@
 
 (
 @|variables )
-@unplayed $1
+( variable unplayed )
+@unplayed $1   @user-input $1
 
 
 |0100
@@ -20,39 +31,60 @@
 (
 @|main )
 @on-reset ( -> )
-	( full-game )
+	;on-controller .Controller/vector DEO2
 
-     show-board
+	full-game
 
-
-
-	cr
     print-stacks
 BRK
 
 
+@on-controller
+	.Controller/key DEI .user-input STZ
+BRK
+
+
+( : square! ( square # --- )   board rot 1- cells ! ; )
 @set-square ( i val -- )   SWP #00 SWP ;board ADD2 STA JMP2r
+
+( : square@ ( square --- # )   board swap 1- cells @ ; )
 @get-square ( i -- val )   #00 SWP ;board ADD2 LDA JMP2r
+
+( : 3-cr ( n --- )   3 mod 0= if cr then ; )
 @3-cr ( i -- )   #03 AND #00 NEQ ?{ cr } JMP2r
+
+( : dashes ( --- )   cr tab ." ---------" cr ; )
 @dashes ( -- )   cr tab { "--------- -NULL } print-izstr cr JMP2r
 
+
+(
+: .square ( n --- )
+    dup square@
+         dup 0 = if
+        swap .
+    then dup 1 = if
+        ." X " drop
+    then dup 2 = if
+        ." O " drop
+    then
+        drop
+)
 @show-square ( i -- )
 	DUP get-square
-	DUP #00 EQU ?&is-0
-	DUP #01 EQU ?&is-1
-	DUP #02 EQU ?&is-2 !&end
-
-	&is-0
-		SWP print-nibble spc !&end
-	&is-1
-		{ "X -SPC -NULL } print-izstr POP !&end
-	&is-2
-		{ "O -SPC -NULL } print-izstr POP !&end
+	DUP #00 EQU not ?{ SWP print-nibble spc !&end }
+	DUP #01 EQU not ?{ { "X -SPC -NULL } print-izstr POP !&end }
+	DUP #02 EQU not ?{ { "O -SPC -NULL } print-izstr POP !&end }
 	&end
 		POP
 JMP2r
 
 
+(
+: 3numbers ( a b c --- )
+    tab .square ." | "
+        .square ." | "
+        .square ;
+)
 @3numbers ( a b c -- )
     tab show-square { "| -SPC -NULL } print-izstr
         show-square { "| -SPC -NULL } print-izstr
@@ -60,11 +92,138 @@ JMP2r
 JMP2r
 
 
+(
+: .board ( --- )
+    9 8 7 6 5 4 3 2 1
+    3numbers dashes
+    3numbers dashes
+    3numbers cr ;
+)
 @show-board ( -- )
 	#0908 #0706 #0504 #0302 #01
 	3numbers dashes
 	3numbers dashes
 	3numbers cr
+JMP2r
+
+(
+: clear-game ( --- )
+    #squares 1+ 1
+    do
+        i 0 square!
+    loop ;
+)
+@clear-game ( -- )
+	.squares INC #01
+	&for
+		DUP #00 set-square
+		INC GTHk ?&for
+	POP2
+JMP2r
+
+
+( : X! ( i --- ) X square! ; )
+@set-X ( i -- )   .X set-square JMP2r
+
+( : O! ( i --- ) O square! ; )
+@set-O ( i -- )   .O set-square JMP2r
+
+
+( : start ( --- )   clear-game #squares unplayed ! ; )
+@start ( -- )   clear-game .squares .unplayed STZ JMP2r
+
+( : current-player ( --- f )   unplayed @ 1 and ; )
+@current-player ( -- f ) .unplayed LDZ #01 AND JMP2r
+
+( : ascii># ( char --- n )   zero - ; )
+@ascii># ( char -- n )   .zero SUB JMP2r
+
+( : range? ( n --- )   dup 1 <  swap 9 > or 0= ; )
+@range? ( n -- )   DUP #00 LTH SWP #0a GTH ORA #00 EQU JMP2r
+
+( : empty? ( n --- )   square@ 0= )
+@empty? ( n -- )   get-square #00 EQU JMP2r
+
+(
+: place-symbol ( square --- )
+   current-player if
+       X!
+   else
+       O!
+   then
+   unplayed @ 1+ unplayed ! ;
+)
+@place-symbol ( square -- )
+	current-player not ?{ set-X !&end }
+	set-O
+	&end
+		.unplayed LDZ INC .unplayed STZ
+JMP2r
+
+
+( : ps ( --- )   place-symbol ; )
+@ps ( -- )   place-symbol JMP2r
+
+(
+: player-input ( --- )
+    begin
+        cr ." Square number for "
+
+        current-player
+        if
+            ." X: "
+        else
+            ." O: "
+        then
+
+        key   dup q-char =
+        if
+            drop cr ." Exiting " bye
+        then
+
+        ascii># dup range? over empty? and
+        if
+            place-symbol .board
+        else
+            drop ." Pick another square. "
+        then
+    while
+        true
+    repeat ;
+)
+@player-input ( -- )
+	&while
+		cr { "Square -SPC "number -SPC "for -SPC -NULL } print-izstr
+
+		current-player not ?{ { "X: -SPC -NULL } print-izstr !&continue }
+		{ "O: -SPC -NULL } print-izstr
+
+		&continue
+			key DUP .q-char EQU not ?{ POP cr { "Exiting -NULL } print-izstr exit }
+
+			ascii># DUP range? OVR empty? AND not ?{ place-symbol show-board !&end }
+			POP { "Pick -SPC "another -SPC "square. -NULL } print-izstr
+
+		&end
+	!&while
+JSR2
+
+
+( : next ( --- )   player-input ; )
+@next ( -- )   player-input JMP2r
+
+(
+: full-game ( --- )
+    start cr ." Enter 'q' to exit. "
+    begin
+        .game player-input
+        if exit then
+        unplayed
+    0= until ;
+)
+@full-game ( -- )
+	start { "Enter -SPC ""q" -SPC "to -SPC "exit. -NULL } print-izstr cr cr
+	show-board player-input
 JMP2r
 
 
@@ -88,16 +247,19 @@ JMP2r
 @tab ( -- )   .TAB emit JMP2r
 @spc ( -- )   .SPC emit JMP2r
 @not ( f -- )   #00 EQU JMP2r
+@key ( -- char )   .user-input LDZ JMP2r
+@exit ( -> )   [ LIT2 80 -System/state ] DEO BRK
 
 @print-stacks ( -- )
 	STH2r ,&rtn STR2
-	[ LIT2 01 -System/debug ] DEO
+	cr [ LIT2 01 -System/debug ] DEO
 	[ LIT2 &rtn $2 ] STH2
 JMP2r
 
 
 (
 @|data )
+( create board squares cells allot )
 @board [
 	00 00 00
 	00 00 00

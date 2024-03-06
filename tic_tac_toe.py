@@ -108,11 +108,11 @@ def set_O(i: int) -> None: set_square(i, O)
 unplayed: int = 0
 
 
-# : start ( --- )   clear-game #squares unplayed ! player-input ;
+# : start ( --- )   clear-game #squares unplayed ! ;
 def start() -> None: clear_game(); global unplayed; unplayed = squares
 
 
-# : current-player ( --- )   unplayed @ 1 and ;
+# : current-player ( --- f )   unplayed @ 1 and ;
 def current_player() -> int: return unplayed & 1
 
 
