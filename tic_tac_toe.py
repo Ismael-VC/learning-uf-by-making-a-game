@@ -203,7 +203,7 @@ def player_input() -> None:
             show("Pick another square.")
 
 
-# : next ( --- ) player-input
+# : next ( --- ) player-input ;
 def nxt() -> None: player_input()
 
 
