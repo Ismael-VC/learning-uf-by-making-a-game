@@ -1,9 +1,9 @@
 \ Learning Forth by Programming a Game
 \ * https://youtu.be/QO3fiIhRuOg
 
-9 constant squares
+9 constant #squares
 
-create board squares cells allot
+create board #squares cells allot
 
 : cells+ ( n --- n+cells )   cells + ;
 
@@ -108,7 +108,7 @@ variable unplayed
 : full-game ( --- )
 	start cr ." Enter 'q' to exit. "
 	begin
-		.game player-input
+		.board player-input
 		if exit then
 		unplayed
 	0= until ;
